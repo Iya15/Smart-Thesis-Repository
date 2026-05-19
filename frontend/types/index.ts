@@ -95,6 +95,25 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+// ─── Admin-Specific Types ─────────────────────────────────────────────────────
+
+export interface AdminStats {
+  totalUsers: number;
+  totalTheses: number;
+  pendingTheses: number;
+  approvedTheses: number;
+  totalAiRequests: number;
+}
+
+export interface IAdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+  _count: { theses: number };
+}
+
 // ─── UI-Specific Types ────────────────────────────────────────────────────────
 
 export interface ThesisFilters {

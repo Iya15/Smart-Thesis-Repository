@@ -9,6 +9,7 @@ import thesisRoutes from "./routes/thesis.routes";
 import aiRoutes from "./routes/ai.routes";
 import bookmarkRoutes from "./routes/bookmark.routes";
 import commentRoutes from "./routes/comment.routes";
+import adminRoutes from "./routes/admin.routes";
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use("/api/theses", thesisRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/admin", adminRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

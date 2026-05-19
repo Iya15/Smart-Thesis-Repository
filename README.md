@@ -24,22 +24,44 @@
 
 ## Overview
 
-The **Smart Thesis Repository** is a SaaS-style academic platform built for BSIT students and faculty. Students can upload PDF thesis papers, which are automatically indexed for full-text search and ready for AI-powered analysis. Advisers and admins can review, comment on, and manage submissions through a clean dashboard interface.
+The **Smart Thesis Repository** is a full-stack SaaS platform built for BSIT students and faculty. Students upload PDF thesis papers that are automatically indexed for full-text search and analyzed with AI. Advisers leave structured feedback. Admins manage submissions and users through a dedicated dashboard.
+
+---
+
+## Screenshots
+
+> **Landing Page**
+> ![Landing Page][screenshot-landing]
+
+> **Thesis Repository with Search & Filters**
+> ![Thesis Listing][screenshot-listing]
+
+> **AI Research Tools**
+> ![AI Tools][screenshot-ai]
+
+> **Admin Dashboard**
+> ![Admin Panel][screenshot-admin]
+
+[screenshot-landing]: #
+[screenshot-listing]: #
+[screenshot-ai]: #
+[screenshot-admin]: #
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| **PDF Upload** | Drag-and-drop PDF upload to Cloudinary with automatic text extraction |
-| **Full-Text Search** | PostgreSQL `to_tsvector` / `plainto_tsquery` search across title, abstract, and extracted content |
-| **AI Research Tools** | 5 Gemini-powered tools: summary, abstract, title suggestions, APA citation, related studies |
-| **Role-Based Access** | Student · Admin · Adviser — each with different permissions |
-| **Bookmarks** | Save and revisit any thesis with a single click |
-| **Comments** | Advisers and admins leave feedback directly on thesis pages |
-| **Admin Panel** | Approve or reject thesis submissions |
-| **Secure Auth** | JWT stored in httpOnly cookies — no localStorage exposure |
+- **PDF Upload** — Drag-and-drop upload to Cloudinary with automatic text extraction via `pdf-parse`
+- **Full-Text Search** — PostgreSQL `to_tsvector` / `plainto_tsquery` across title, abstract, and extracted content
+- **AI Research Tools** — 5 Gemini-powered tools: summary, abstract, title suggestions, APA citation, related studies
+- **Daily Rate Limiting** — Max 10 AI requests per user per day, tracked in the database
+- **Role-Based Access** — Student · Admin · Adviser with distinct permission sets
+- **Bookmarks** — Save and revisit any thesis with an optimistic-UI toggle
+- **Comments** — Advisers and Admins leave structured feedback on thesis pages
+- **Admin Panel** — Approve/reject submissions, manage users, platform-wide statistics
+- **Dark Mode** — System-preference aware, persistent via `next-themes`
+- **JWT Auth** — Stored in httpOnly cookies — not accessible to JavaScript
+- **Responsive** — Mobile-first Tailwind layout throughout
 
 ---
 
@@ -48,7 +70,7 @@ The **Smart Thesis Repository** is a SaaS-style academic platform built for BSIT
 | Role | Permissions |
 |---|---|
 | **STUDENT** | Register, upload theses, use AI tools, search, bookmark |
-| **ADMIN** | All student permissions + approve/reject theses, manage users, post comments |
+| **ADMIN** | All student permissions + approve/reject theses, manage users, view platform stats |
 | **ADVISER** | View theses, post comments on student papers |
 
 ---
@@ -60,9 +82,10 @@ The **Smart Thesis Repository** is a SaaS-style academic platform built for BSIT
 |---|---|
 | [Next.js 14](https://nextjs.org/) (App Router) | React framework with server/client component model |
 | [TypeScript](https://www.typescriptlang.org/) | Full type safety across all components and hooks |
-| [Tailwind CSS](https://tailwindcss.com/) | Utility-first styling |
+| [Tailwind CSS](https://tailwindcss.com/) | Utility-first styling with dark mode support |
+| [next-themes](https://github.com/pacocoursey/next-themes) | System-aware dark/light mode with persistence |
 | [shadcn/ui](https://ui.shadcn.com/) | Accessible component primitives |
-| [Axios](https://axios-http.com/) | HTTP client with httpOnly cookie support (`withCredentials: true`) |
+| [Axios](https://axios-http.com/) | HTTP client with httpOnly cookie support |
 | [lucide-react](https://lucide.dev/) | Icon library |
 
 ### Backend
@@ -73,7 +96,7 @@ The **Smart Thesis Repository** is a SaaS-style academic platform built for BSIT
 | [Prisma ORM](https://www.prisma.io/) | Type-safe database access |
 | [Zod](https://zod.dev/) | Runtime validation on all request bodies |
 | [Multer](https://github.com/expressjs/multer) | PDF file handling (memory storage) |
-| [pdf-parse](https://www.npmjs.com/package/pdf-parse) | Extracts text content from uploaded PDFs |
+| [pdf-parse](https://www.npmjs.com/package/pdf-parse) | Text extraction from uploaded PDFs |
 
 ### Database & Storage
 | Technology | Purpose |
@@ -81,24 +104,12 @@ The **Smart Thesis Repository** is a SaaS-style academic platform built for BSIT
 | [PostgreSQL](https://www.postgresql.org/) via [Supabase](https://supabase.com/) | Primary database (free tier) |
 | [Cloudinary](https://cloudinary.com/) | PDF file storage and delivery (free tier) |
 
-### AI
+### AI & Auth
 | Technology | Purpose |
 |---|---|
 | [Google Gemini 1.5 Flash](https://ai.google.dev/) | AI text generation (free tier) |
-
-### Authentication
-| Technology | Purpose |
-|---|---|
-| [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) | JWT generation and verification |
+| [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) | JWT — 7-day expiry, httpOnly cookie |
 | [bcryptjs](https://github.com/dcodeIO/bcrypt.js) | Password hashing (12 salt rounds) |
-| [cookie-parser](https://github.com/expressjs/cookie-parser) | httpOnly cookie parsing |
-
-### Deployment
-| Service | Hosts |
-|---|---|
-| [Vercel](https://vercel.com/) | Next.js frontend |
-| [Render](https://render.com/) | Express.js backend |
-| [Supabase](https://supabase.com/) | PostgreSQL database |
 
 ---
 
@@ -107,100 +118,109 @@ The **Smart Thesis Repository** is a SaaS-style academic platform built for BSIT
 ```
 Smart_Thesis_Repository/
 ├── backend/
-│   ├── prisma/
-│   │   └── schema.prisma          # Database schema (7 models)
+│   ├── prisma/schema.prisma       # 7 Prisma models
 │   ├── src/
-│   │   ├── config/
-│   │   │   ├── db.ts              # Prisma client singleton
-│   │   │   └── cloudinary.ts      # Cloudinary + multer storage config
-│   │   ├── controllers/           # Request handlers (thin layer)
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── thesis.controller.ts
-│   │   │   ├── ai.controller.ts
-│   │   │   ├── bookmark.controller.ts
-│   │   │   └── comment.controller.ts
-│   │   ├── services/              # Business logic
-│   │   │   ├── auth.service.ts
-│   │   │   ├── thesis.service.ts
-│   │   │   ├── file.service.ts    # Cloudinary upload/delete
-│   │   │   ├── ai.service.ts      # Gemini integration + rate limiting
-│   │   │   ├── bookmark.service.ts
-│   │   │   └── comment.service.ts
-│   │   ├── middleware/
-│   │   │   ├── auth.middleware.ts  # JWT cookie verification
-│   │   │   ├── role.middleware.ts  # Role-based access control
-│   │   │   └── upload.middleware.ts # Multer PDF filter + size limit
-│   │   ├── routes/
-│   │   │   ├── auth.routes.ts
-│   │   │   ├── thesis.routes.ts
-│   │   │   ├── ai.routes.ts
-│   │   │   ├── bookmark.routes.ts
-│   │   │   └── comment.routes.ts
-│   │   ├── utils/
-│   │   │   ├── jwt.util.ts         # signToken / verifyToken
-│   │   │   ├── response.util.ts    # Unified success/error helpers
-│   │   │   └── pdf.util.ts         # extractTextFromBuffer
-│   │   ├── types/
-│   │   │   └── express.d.ts        # req.user type extension
-│   │   └── app.ts                  # Express app setup
-│   ├── server.ts                   # Entry point
-│   ├── tsconfig.json
-│   └── .env.example
+│   │   ├── config/                # Prisma client singleton, Cloudinary
+│   │   ├── controllers/           # auth, thesis, ai, bookmark, comment, admin
+│   │   ├── services/              # Business logic + DB queries
+│   │   ├── middleware/            # auth, role, upload
+│   │   ├── routes/                # All Express routers
+│   │   └── utils/                 # JWT, response helpers, pdf extractor
+│   ├── server.ts
+│   └── render.yaml                # Render deployment config
 │
-└── frontend/
-    ├── app/
-    │   ├── (auth)/
-    │   │   ├── login/page.tsx
-    │   │   └── register/page.tsx
-    │   ├── (dashboard)/
-    │   │   ├── layout.tsx           # Auth-protected shell
-    │   │   ├── dashboard/page.tsx
-    │   │   ├── thesis/
-    │   │   │   ├── page.tsx         # Thesis listing + search
-    │   │   │   ├── upload/page.tsx
-    │   │   │   └── [id]/page.tsx    # Thesis detail
-    │   │   ├── ai-tools/page.tsx
-    │   │   └── bookmarks/page.tsx
-    │   ├── layout.tsx               # Root layout + AuthProvider
-    │   ├── page.tsx                 # Landing page
-    │   └── providers.tsx            # Client-side context wrapper
-    ├── components/
-    │   ├── ai/
-    │   │   ├── AiToolPanel.tsx      # 5 tool buttons + usage counter
-    │   │   └── AiOutput.tsx         # Output display + copy button
-    │   ├── layout/
-    │   │   └── DashboardLayout.tsx  # Sidebar + top navbar
-    │   ├── shared/
-    │   │   ├── FileUpload.tsx       # Drag-and-drop PDF uploader
-    │   │   ├── SearchBar.tsx        # Debounced search input
-    │   │   └── FilterBar.tsx        # Year / course / status filters
-    │   └── thesis/
-    │       ├── ThesisCard.tsx
-    │       ├── ThesisDetail.tsx
-    │       ├── BookmarkButton.tsx   # Optimistic toggle
-    │       └── CommentSection.tsx   # Live comments + form
-    ├── hooks/
-    │   ├── useAuth.ts               # AuthContext + AuthProvider
-    │   └── useThesis.ts
-    ├── lib/
-    │   └── api.ts                   # Axios instance (withCredentials)
-    └── types/
-        └── index.ts                 # All TypeScript interfaces
+├── frontend/
+│   ├── app/
+│   │   ├── (auth)/login, register
+│   │   ├── (dashboard)/
+│   │   │   ├── dashboard/         # Role-aware stats
+│   │   │   ├── thesis/            # Listing, upload, detail
+│   │   │   ├── ai-tools/          # 5 Gemini tools
+│   │   │   ├── bookmarks/
+│   │   │   └── admin/             # Stats + user management
+│   │   └── providers.tsx          # ThemeProvider + AuthProvider
+│   ├── components/
+│   │   ├── ai/                    # AiToolPanel, AiOutput
+│   │   ├── layout/                # DashboardLayout (sidebar + dark toggle)
+│   │   ├── shared/                # LoadingSkeleton, EmptyState, ErrorBanner,
+│   │   │                          #   SearchBar, FilterBar, FileUpload
+│   │   └── thesis/                # ThesisCard, ThesisDetail, BookmarkButton,
+│   │                              #   CommentSection
+│   ├── hooks/                     # useAuth, useThesis
+│   ├── lib/api.ts                 # Axios instance
+│   ├── types/index.ts             # All TypeScript interfaces
+│   └── vercel.json                # Vercel deployment config
+│
+├── DEPLOYMENT.md                  # Step-by-step production deployment guide
+└── README.md
 ```
 
 ---
 
-## Database Schema
+## Local Setup
 
+### Prerequisites
+- Node.js 18+
+- [Supabase](https://supabase.com/) project (free tier)
+- [Cloudinary](https://cloudinary.com/) account (free tier)
+- [Google AI Studio](https://aistudio.google.com/) API key (free tier)
+
+### Backend
+
+```bash
+cd backend
+npm install
+
+# Copy and fill in environment variables
+cp .env.example .env
+
+# Generate Prisma client and run migration
+npx prisma generate
+npx prisma migrate dev --name init
+
+# Start development server (http://localhost:5000)
+npm run dev
 ```
-User          — id, name, email, password, role (STUDENT|ADMIN|ADVISER)
-Thesis        — id, title, abstract, fileUrl, extractedText, status, year, course
-Tag           — id, name (unique)  ←→  Thesis (many-to-many)
-AiOutput      — id, thesisId, type (SUMMARY|ABSTRACT|…), content
-Bookmark      — id, userId, thesisId  (@@unique)
-Comment       — id, thesisId, authorId, content
-AiUsage       — id, userId, type, usedAt  (daily rate limit tracking)
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+
+# Create environment file
+echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > .env.local
+
+# Initialize shadcn/ui (first time only)
+npx shadcn@latest init
+
+# Start development server (http://localhost:3000)
+npm run dev
 ```
+
+---
+
+## Environment Variables
+
+### `backend/.env`
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string from Supabase |
+| `JWT_SECRET` | Long random string (`openssl rand -base64 64`) |
+| `CLOUDINARY_CLOUD_NAME` | From Cloudinary dashboard |
+| `CLOUDINARY_API_KEY` | From Cloudinary dashboard |
+| `CLOUDINARY_API_SECRET` | From Cloudinary dashboard |
+| `GEMINI_API_KEY` | From aistudio.google.com |
+| `CLIENT_URL` | Frontend URL (e.g. `http://localhost:3000`) |
+| `PORT` | Server port (default: `5000`) |
+| `NODE_ENV` | `development` or `production` |
+
+### `frontend/.env.local`
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend URL (e.g. `http://localhost:5000`) |
 
 ---
 
@@ -218,17 +238,21 @@ AiUsage       — id, userId, type, usedAt  (daily rate limit tracking)
 | `POST` | `/api/theses` | Required | Upload PDF thesis |
 | `PATCH` | `/api/theses/:id/status` | Admin | Approve or reject |
 | `POST` | `/api/ai/summarize/:id` | Required | Generate 3-paragraph summary |
-| `POST` | `/api/ai/abstract/:id` | Required | Generate 150–250 word abstract |
+| `POST` | `/api/ai/abstract/:id` | Required | Generate formal abstract |
 | `POST` | `/api/ai/titles/:id` | Required | Suggest 5 alternative titles |
 | `POST` | `/api/ai/citation/:id` | Required | Format APA 7th edition citation |
-| `POST` | `/api/ai/related/:id` | Required | Suggest 5 related research topics |
-| `GET` | `/api/ai/outputs/:id` | Required | Get saved AI outputs for thesis |
+| `POST` | `/api/ai/related/:id` | Required | Suggest related research topics |
+| `GET` | `/api/ai/outputs/:id` | Required | Saved AI outputs for thesis |
 | `GET` | `/api/ai/usage` | Required | Today's AI request count |
 | `POST` | `/api/bookmarks/:id` | Required | Toggle bookmark |
-| `GET` | `/api/bookmarks` | Required | Get all bookmarked theses |
-| `GET` | `/api/bookmarks/:id/status` | Required | Check if thesis is bookmarked |
+| `GET` | `/api/bookmarks` | Required | All bookmarked theses |
+| `GET` | `/api/bookmarks/:id/status` | Required | Check if bookmarked |
 | `GET` | `/api/comments/:id` | Required | Get comments on a thesis |
 | `POST` | `/api/comments/:id` | Admin/Adviser | Post a comment |
+| `GET` | `/api/admin/stats` | Admin | Platform statistics |
+| `GET` | `/api/admin/theses` | Admin | All theses (no status filter) |
+| `GET` | `/api/admin/users` | Admin | Paginated user list |
+| `DELETE` | `/api/admin/users/:id` | Admin | Delete user + cascade |
 
 ---
 
@@ -236,99 +260,39 @@ AiUsage       — id, userId, type, usedAt  (daily rate limit tracking)
 
 | Measure | Implementation |
 |---|---|
-| **Password hashing** | bcrypt with 12 salt rounds |
-| **Authentication** | JWT (7-day expiry) stored in `httpOnly` cookie — not accessible to JavaScript |
-| **CORS** | Whitelist `CLIENT_URL` only, `credentials: true` |
-| **Input validation** | Zod schemas on every request body |
-| **Role enforcement** | `requireRole()` middleware stacked on protected routes |
-| **File validation** | PDF mime type check + 10 MB size limit via Multer |
-| **AI rate limiting** | Max 10 Gemini requests per user per day (tracked in DB) |
-| **Timing-safe login** | bcrypt compare always runs even for nonexistent emails |
-| **Cloudinary rollback** | Uploaded file deleted from Cloudinary if DB write fails |
+| Password hashing | bcrypt, 12 salt rounds |
+| Authentication | JWT (7-day expiry), `httpOnly` cookie |
+| CORS | `CLIENT_URL` whitelist, `credentials: true` |
+| Input validation | Zod on every request body |
+| Role enforcement | `requireRole()` middleware on all protected routes |
+| File validation | PDF mime check + 10 MB limit via Multer |
+| AI rate limiting | Max 10 Gemini requests/user/day (DB-tracked) |
+| Timing-safe login | bcrypt always runs even for non-existent emails |
+| Cloudinary rollback | Uploaded file deleted if DB write fails |
 
 ---
 
-## Environment Variables
+## Deployment
 
-### Backend — `backend/.env`
-```env
-DATABASE_URL=          # PostgreSQL connection string from Supabase
-JWT_SECRET=            # Long random string (openssl rand -base64 64)
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-GEMINI_API_KEY=        # From aistudio.google.com
-CLIENT_URL=http://localhost:3000
-PORT=5000
-NODE_ENV=development
-```
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full step-by-step guide.
 
-### Frontend — `frontend/.env.local`
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
+**Quick summary:**
+1. **Supabase** — copy the PostgreSQL connection string
+2. **Render** — connect GitHub repo, set env vars, deploy backend
+3. **Vercel** — connect GitHub repo, set `NEXT_PUBLIC_API_URL`, deploy frontend
+4. **Migrations** — run `npx prisma migrate deploy` in Render shell
 
 ---
 
-## Getting Started
+## License
 
-### Prerequisites
-- Node.js 18+
-- A [Supabase](https://supabase.com/) project (free tier)
-- A [Cloudinary](https://cloudinary.com/) account (free tier)
-- A [Google AI Studio](https://aistudio.google.com/) API key (free tier)
-
-### Backend
-```bash
-cd backend
-npm install
-
-# Copy and fill in your environment variables
-cp .env.example .env
-
-# Generate Prisma client and run initial migration
-npx prisma generate
-npx prisma migrate dev --name init
-
-# Start development server
-npx ts-node server.ts
-# → Server running on port 5000
-```
-
-### Frontend
-```bash
-cd frontend
-npm install
-
-# Create env file
-echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > .env.local
-
-# Initialize shadcn/ui (first time only)
-npx shadcn@latest init
-
-# Start development server
-npm run dev
-# → http://localhost:3000
-```
-
----
-
-## Architecture
-
-The project follows **clean layered architecture** throughout:
+This project is licensed under the [MIT License](LICENSE).
 
 ```
-Request → Route → Middleware → Controller → Service → Database
+MIT License — Copyright (c) 2025 Smart Thesis Repository
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software to deal in the Software without restriction, including without
+limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software.
 ```
-
-- **Routes** — wire HTTP methods to controllers and stack middleware
-- **Middleware** — auth, role checks, file upload handling
-- **Controllers** — validate input (Zod), call services, format responses
-- **Services** — all business logic, DB queries, external API calls
-- **Utils** — pure helpers (JWT, response shaping, PDF extraction)
-
----
-
-<div align="center">
-  <sub>Built with Next.js 14, Express.js, PostgreSQL, and Google Gemini AI</sub>
-</div>

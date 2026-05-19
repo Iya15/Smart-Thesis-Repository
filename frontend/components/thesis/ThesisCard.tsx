@@ -2,9 +2,9 @@ import Link from "next/link";
 import { IThesis } from "../../types";
 
 const STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
-  APPROVED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
+  PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  APPROVED: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+  REJECTED: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
 };
 
 interface ThesisCardProps {
@@ -15,16 +15,17 @@ export default function ThesisCard({ thesis }: ThesisCardProps) {
   return (
     <Link
       href={`/thesis/${thesis.id}`}
-      className="block rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition hover:shadow-md hover:ring-blue-200"
+      className="block rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition hover:shadow-md hover:ring-blue-200 dark:bg-zinc-900 dark:ring-zinc-700 dark:hover:ring-blue-700"
     >
       {/* Header row */}
       <div className="flex items-start justify-between gap-3">
-        <h3 className="line-clamp-2 text-base font-semibold text-slate-900">
+        <h3 className="line-clamp-2 text-base font-semibold text-slate-900 dark:text-gray-100">
           {thesis.title}
         </h3>
         <span
           className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-            STATUS_STYLES[thesis.status] ?? "bg-slate-100 text-slate-600"
+            STATUS_STYLES[thesis.status] ??
+            "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400"
           }`}
         >
           {thesis.status}
@@ -32,7 +33,7 @@ export default function ThesisCard({ thesis }: ThesisCardProps) {
       </div>
 
       {/* Meta */}
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500 dark:text-zinc-400">
         {thesis.author?.name && (
           <span className="flex items-center gap-1">
             <svg
@@ -53,13 +54,13 @@ export default function ThesisCard({ thesis }: ThesisCardProps) {
         )}
         {thesis.year && <span>{thesis.year}</span>}
         {thesis.course && (
-          <span className="truncate max-w-[140px]">{thesis.course}</span>
+          <span className="max-w-[140px] truncate">{thesis.course}</span>
         )}
       </div>
 
       {/* Abstract preview */}
       {thesis.abstract && (
-        <p className="mt-3 line-clamp-2 text-sm text-slate-500">
+        <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-zinc-400">
           {thesis.abstract}
         </p>
       )}
@@ -70,13 +71,13 @@ export default function ThesisCard({ thesis }: ThesisCardProps) {
           {thesis.tags.slice(0, 4).map((tag) => (
             <span
               key={tag.id}
-              className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600"
+              className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"
             >
               {tag.name}
             </span>
           ))}
           {thesis.tags.length > 4 && (
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-400">
+            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-400 dark:bg-zinc-800 dark:text-zinc-500">
               +{thesis.tags.length - 4} more
             </span>
           )}
