@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      Role       @default(STUDENT)
+  createdAt DateTime   @default(now())
+  theses    Thesis[]
+  bookmarks Bookmark[]
+  aiUsage   AiUsage[]
+  comments  Comment[]
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+  ADVISER
+}
+
+model Thesis {
+  id            String     @id @default(cuid())
+  title         String
+  abstract      String?
+  authorId      String
+  author        User       @relation(fields: [authorId], references: [id])
+  status        Status     @default(PENDING)
+  fileUrl       String
+  filePublicId  String
+  extractedText String?    @db.Text
+  year          Int?
+  course        String?
+  tags          Tag[]
+  aiOutputs     AiOutput[]
+  bookmarks     Bookmark[]
+  comments      Comment[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Tag {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  theses Thesis[]
+}
+
+model AiOutput {
+  id        String   @id @default(cuid())
+  thesisId  String
+  thesis    Thesis   @relation(fields: [thesisId], references: [id])
+  type      AiType
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+enum AiType {
+  SUMMARY
+  ABSTRACT
+  TITLE_SUGGESTION
+  CITATION
+  RELATED_STUDIES
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  thesisId  String
+  user      User     @relation(fields: [userId], references: [id])
+  thesis    Thesis   @relation(fields: [thesisId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, thesisId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  thesisId  String
+  authorId  String
+  content   String
+  thesis    Thesis   @relation(fields: [thesisId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model AiUsage {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id])
+  type   AiType
+  usedAt DateTime @default(now())
+}
