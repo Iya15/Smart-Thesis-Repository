@@ -5,11 +5,12 @@ import cookieParser from "cookie-parser";
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 import authRoutes from "./routes/auth.routes";
+import thesisRoutes from "./routes/thesis.routes";
+import aiRoutes from "./routes/ai.routes";
 
 const app = express();
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
-// Credentials: true is required so browsers send the httpOnly JWT cookie
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:3000",
@@ -37,6 +38,8 @@ app.get("/api/health", (_req: Request, res: Response) => {
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
+app.use("/api/theses", thesisRoutes);
+app.use("/api/ai", aiRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {
