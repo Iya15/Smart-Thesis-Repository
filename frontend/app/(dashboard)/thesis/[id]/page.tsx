@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useThesis } from "../../../../hooks/useThesis";
+import { useAuth } from "../../../../hooks/useAuth";
 import ThesisDetail from "../../../../components/thesis/ThesisDetail";
+import BookmarkButton from "../../../../components/thesis/BookmarkButton";
+import CommentSection from "../../../../components/thesis/CommentSection";
+import api from "../../../../lib/api";
 import { IThesis } from "../../../../types";
 
 // ─── Loading skeleton ─────────────────────────────────────────────────────────
@@ -11,10 +15,10 @@ import { IThesis } from "../../../../types";
 function DetailSkeleton() {
   return (
     <div className="mx-auto max-w-3xl animate-pulse space-y-5">
-      {/* Back link */}
-      <div className="h-4 w-32 rounded-md bg-slate-200" />
-
-      {/* Header card */}
+      <div className="flex items-center justify-between">
+        <div className="h-4 w-32 rounded-md bg-slate-200" />
+        <div className="h-8 w-20 rounded-lg bg-slate-200" />
+      </div>
       <div className="rounded-xl bg-slate-200 p-6">
         <div className="flex justify-between gap-4">
           <div className="h-7 w-2/3 rounded-md bg-slate-300" />
@@ -29,14 +33,11 @@ function DetailSkeleton() {
           <div className="h-5 w-20 rounded-full bg-slate-300" />
         </div>
       </div>
-
-      {/* Abstract card */}
       <div className="rounded-xl bg-slate-200 p-6">
         <div className="h-4 w-20 rounded-md bg-slate-300" />
         <div className="mt-3 space-y-2">
           <div className="h-3 w-full rounded-md bg-slate-300" />
           <div className="h-3 w-5/6 rounded-md bg-slate-300" />
-          <div className="h-3 w-4/6 rounded-md bg-slate-300" />
         </div>
       </div>
     </div>
@@ -48,19 +49,30 @@ function DetailSkeleton() {
 export default function ThesisDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { getThesisById } = useThesis();
+  const { user } = useAuth();
 
   const [thesis, setThesis] = useState<IThesis | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
+  // Fetch thesis content
   useEffect(() => {
     if (!id) return;
-
     getThesisById(id)
       .then(setThesis)
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch bookmark status once we know the thesis ID and the user is loaded
+  useEffect(() => {
+    if (!id || !user) return;
+    api
+      .get<{ data: { bookmarked: boolean } }>(`/api/bookmarks/${id}/status`)
+      .then(({ data }) => setIsBookmarked(data.data.bookmarked))
+      .catch(() => setIsBookmarked(false));
+  }, [id, user]);
 
   if (loading) {
     return (
@@ -97,8 +109,20 @@ export default function ThesisDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <ThesisDetail thesis={thesis} />
+    <div className="mx-auto max-w-3xl space-y-5">
+      {/* ThesisDetail — back button + all content sections (AI outputs included).
+          The bookmarkSlot is rendered in the nav row next to the back button. */}
+      <ThesisDetail
+        thesis={thesis}
+        bookmarkSlot={
+          <BookmarkButton thesisId={thesis.id} initialState={isBookmarked} />
+        }
+      />
+
+      {/* CommentSection — fetches live comments, allows ADMIN/ADVISER to post */}
+      {user && (
+        <CommentSection thesisId={thesis.id} userRole={user.role} />
+      )}
     </div>
   );
 }

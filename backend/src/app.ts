@@ -7,6 +7,8 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes";
 import thesisRoutes from "./routes/thesis.routes";
 import aiRoutes from "./routes/ai.routes";
+import bookmarkRoutes from "./routes/bookmark.routes";
+import commentRoutes from "./routes/comment.routes";
 
 const app = express();
 
@@ -40,6 +42,8 @@ app.get("/api/health", (_req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/theses", thesisRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/comments", commentRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

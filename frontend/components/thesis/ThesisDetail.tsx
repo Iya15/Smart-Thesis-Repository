@@ -41,7 +41,13 @@ function Section({
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ThesisDetail({ thesis }: { thesis: IThesis }) {
+export default function ThesisDetail({
+  thesis,
+  bookmarkSlot,
+}: {
+  thesis: IThesis;
+  bookmarkSlot?: React.ReactNode;
+}) {
   const [showFullText, setShowFullText] = useState(false);
   const hasMoreText =
     (thesis.extractedText?.length ?? 0) > EXTRACTED_PREVIEW_LENGTH;
@@ -53,26 +59,29 @@ export default function ThesisDetail({ thesis }: { thesis: IThesis }) {
 
   return (
     <div className="space-y-5">
-      {/* ── Back button ── */}
-      <Link
-        href="/thesis"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-slate-800"
-      >
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
+      {/* ── Navigation row: back button + optional bookmark slot ── */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/thesis"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-slate-800"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-          />
-        </svg>
-        Back to Repository
-      </Link>
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+            />
+          </svg>
+          Back to Repository
+        </Link>
+        {bookmarkSlot}
+      </div>
 
       {/* ── Header card ── */}
       <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -220,39 +229,6 @@ export default function ThesisDetail({ thesis }: { thesis: IThesis }) {
         )}
       </Section>
 
-      {/* ── Comments ── */}
-      <Section title="Comments">
-        {thesis.comments && thesis.comments.length > 0 ? (
-          <div className="divide-y divide-slate-100">
-            {thesis.comments.map((comment) => (
-              <div key={comment.id} className="py-3 first:pt-0 last:pb-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-slate-800">
-                    {comment.author?.name ?? "Unknown"}
-                  </span>
-                  {comment.author?.role && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                      {comment.author.role}
-                    </span>
-                  )}
-                  <span className="ml-auto text-xs text-slate-400">
-                    {new Date(comment.createdAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-slate-600">{comment.content}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-slate-400">
-            No comments yet. Adviser feedback will appear here.
-          </p>
-        )}
-      </Section>
     </div>
   );
 }
