@@ -39,6 +39,9 @@ export interface IThesis {
   year: number | null;
   course: string | null;
   tags: ITag[];
+  // Included only on the detail endpoint (GET /api/theses/:id)
+  aiOutputs?: IAiOutput[];
+  comments?: IComment[];
   createdAt: string;
   updatedAt: string;
 }
@@ -66,7 +69,7 @@ export interface IComment {
   thesisId: string;
   authorId: string;
   content: string;
-  author?: IUser;
+  author?: Pick<IUser, "id" | "name" | "role">;
   createdAt: string;
 }
 
@@ -90,4 +93,14 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+// ─── UI-Specific Types ────────────────────────────────────────────────────────
+
+export interface ThesisFilters {
+  search: string;
+  year: string;
+  course: string;
+  status: string; // "ALL" | Status values
+  page: number;
 }
